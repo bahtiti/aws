@@ -87,60 +87,52 @@ Add this line to your `~/.bashrc` or `~/.zshrc` to make it permanent.
 
 ## 4. Invoke a Lambda Function
 
-### Synchronous invocation (wait for result)
+Replace `{Your-Env-Profile}` with your actual profile name (e.g. `dev`, `staging`, `prod`).
+
+### Run a Laravel Artisan migration
 
 ```bash
 aws lambda invoke \
-  --function-name my-function \
-  --payload '{"key": "value"}' \
+  --function-name pt-solution-api-test-artisan \
   --cli-binary-format raw-in-base64-out \
-  response.json \
-  --profile dev
-
-cat response.json
+  --payload '{"cli": "migrate --force"}' \
+  --region eu-central-1 \
+  --profile {Your-Env-Profile} \
+  /tmp/pt-migrate.json 2>&1 && echo "--- RESPONSE ---" && cat /tmp/pt-migrate.json
 ```
 
-- `--function-name` — the function name or its full ARN
+### General invocation pattern
+
+```bash
+aws lambda invoke \
+  --function-name {function-name} \
+  --cli-binary-format raw-in-base64-out \
+  --payload '{your-json-payload}' \
+  --region eu-central-1 \
+  --profile {Your-Env-Profile} \
+  /tmp/response.json 2>&1 && echo "--- RESPONSE ---" && cat /tmp/response.json
+```
+
+- `--function-name` — the Lambda function name or its full ARN
 - `--payload` — JSON input sent to the function
 - `--cli-binary-format raw-in-base64-out` — required with AWS CLI v2 to pass plain JSON payloads
-- `response.json` — the file where the function response is written
-
-### Synchronous invocation with a file payload
-
-```bash
-aws lambda invoke \
-  --function-name my-function \
-  --payload file://payload.json \
-  --cli-binary-format raw-in-base64-out \
-  response.json \
-  --profile dev
-```
+- `--region` — AWS region where the function is deployed
+- `/tmp/response.json` — file where the function response is written; printed to terminal after invocation
 
 ### Asynchronous invocation (fire and forget)
 
 ```bash
 aws lambda invoke \
-  --function-name my-function \
+  --function-name {function-name} \
   --invocation-type Event \
-  --payload '{"key": "value"}' \
   --cli-binary-format raw-in-base64-out \
-  response.json \
-  --profile dev
+  --payload '{your-json-payload}' \
+  --region eu-central-1 \
+  --profile {Your-Env-Profile} \
+  /tmp/response.json
 ```
 
 Returns HTTP 202 immediately without waiting for execution to finish.
-
-### Invoke in a specific region
-
-```bash
-aws lambda invoke \
-  --function-name my-function \
-  --region eu-west-1 \
-  --payload '{"key": "value"}' \
-  --cli-binary-format raw-in-base64-out \
-  response.json \
-  --profile dev
-```
 
 ---
 
