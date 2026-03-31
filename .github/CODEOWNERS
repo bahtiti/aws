@@ -1,0 +1,35 @@
+# CODEOWNERS — https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Format: <pattern> <owner> [<owner> ...]
+# Patterns are matched in order; the LAST matching pattern takes priority.
+# At least ONE owner must approve before a PR can be merged.
+#
+# Branch protection rules enforce:
+#   main    → 2 required approvals (CODEOWNERS review mandatory)
+#   staging → 2 required approvals
+#   develop → 1 required approval
+
+# ── Global default ────────────────────────────────────────────────────────────
+# All files require review from the team lead by default
+*                               @bahtiti
+
+# ── GitHub configuration ──────────────────────────────────────────────────────
+.github/                        @bahtiti
+.github/workflows/              @bahtiti
+
+# ── Infrastructure / IaC ─────────────────────────────────────────────────────
+*.tf                            @bahtiti
+*.tfvars                        @bahtiti
+**/*.yaml                       @bahtiti
+**/*.yml                        @bahtiti
+**/*.json                       @bahtiti
+
+# ── CloudFormation ────────────────────────────────────────────────────────────
+cfn/                            @bahtiti
+cloudformation/                 @bahtiti
+stacks/                         @bahtiti
+
+# ── Secrets / sensitive config ────────────────────────────────────────────────
+**/*.env                        @bahtiti
+**/*secret*                     @bahtiti
+**/*credential*                 @bahtiti

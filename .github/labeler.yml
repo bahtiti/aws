@@ -1,0 +1,54 @@
+# Auto-labeler configuration
+# Used with actions/labeler@v5
+
+bug:
+  - head-branch: ["^fix/", "^bugfix/", "^hotfix/"]
+
+feature:
+  - head-branch: ["^feat/", "^feature/"]
+
+hotfix:
+  - head-branch: ["^hotfix/"]
+
+chore:
+  - head-branch: ["^chore/", "^deps/", "^dependabot/"]
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/*.md"
+      - "docs/**"
+
+infrastructure:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/*.tf"
+      - "**/*.tfvars"
+      - "cfn/**"
+      - "cloudformation/**"
+      - "stacks/**"
+
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file:
+      - ".github/workflows/**"
+      - ".github/actions/**"
+
+security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "**/*security*"
+      - "**/*iam*"
+      - "**/*policy*"
+
+size/XS:
+  - head-branch: ".*"
+
+production:
+  - base-branch: "main"
+
+staging:
+  - base-branch: "staging"
+
+develop:
+  - base-branch: "develop"
