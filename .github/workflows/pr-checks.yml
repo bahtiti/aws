@@ -1,0 +1,104 @@
+name: PR Quality Gates
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # ── 1. Enforce Conventional Commits title ──────────────────────────────────
+  pr-title:
+    name: Conventional Commit Title
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR title format
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Allowed types (must match .releaserc.json)
+          types: |
+            feat
+            fix
+            hotfix
+            docs
+            chore
+            refactor
+            perf
+            ci
+            test
+            build
+          # Optional scopes (add your own)
+          # scopes: |
+          #   lambda
+          #   iam
+          #   s3
+          #   vpc
+          requireScope: false
+          subjectPattern: ^(?![A-Z]).+$
+          subjectPatternError: |
+            The subject "{subject}" must start with a lowercase letter.
+
+  # ── 2. PR body must not be empty ───────────────────────────────────────────
+  pr-description:
+    name: PR Description Required
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR has a description
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body;
+            if (!body || body.trim().length < 20) {
+              core.setFailed(
+                'PR description is missing or too short. Please fill in the PR template.'
+              );
+            }
+
+  # ── 3. Block direct pushes to protected bases ───────────────────────────────
+  branch-policy:
+    name: Branch Promotion Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce promotion hierarchy
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const base  = context.payload.pull_request.base.ref;
+            const head  = context.payload.pull_request.head.ref;
+
+            const rules = {
+              'main':    ['staging', 'hotfix/'],
+              'staging': ['develop', 'hotfix/'],
+              'develop': ['feature/', 'feat/', 'fix/', 'chore/', 'docs/', 'refactor/', 'perf/', 'ci/', 'test/', 'build/'],
+            };
+
+            const allowed = rules[base];
+            if (!allowed) return; // unmanaged base branch - allow
+
+            const isAllowed = allowed.some(prefix => head.startsWith(prefix) || head === prefix);
+            if (!isAllowed) {
+              core.setFailed(
+                `Branch promotion policy violation:\n` +
+                `  Target: ${base}\n` +
+                `  Source: ${head}\n\n` +
+                `  Allowed sources for '${base}': ${allowed.join(', ')}\n\n` +
+                `  See GITOPS.md for the branch promotion hierarchy.`
+              );
+            }
+
+  # ── 4. Auto-label the PR ───────────────────────────────────────────────────
+  label:
+    name: Auto-label PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/labeler@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: .github/labeler.yml
